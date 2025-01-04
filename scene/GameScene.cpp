@@ -49,6 +49,7 @@ void GameScene::Initialize() {
 
 	LoadEnemyPopData();
 	// GenerateEnemy({0,10,100});
+	GameTime_ = 2000;
 
 	// 自キャラとレールカメラの親子関係を結ぶ
 	player_->SetParent(&railCamera_->GetWorldTransform());
@@ -76,6 +77,7 @@ void GameScene::Update() {
 		TitleFr = false;
 	}
 	if (TitleFr) {
+		GameTime_--;
 		player_->Update();
 		debugCamera_->Update();
 		for (Enemy* enemy : enemies_) {
@@ -188,7 +190,7 @@ void GameScene::Draw() {
 	if (enemyAlive <= 1) {
 		// クリアの画像を描画
 		spriteClear_->Draw();
-	} else if (playerLife <= 0) {
+	} else if (playerLife <= 0 || GameTime_ <= 0) {
 		// ゲームオーバーの画像を描画
 		spriteGameover_->Draw();
 	} else {
