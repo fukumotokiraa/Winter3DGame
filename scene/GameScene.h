@@ -46,6 +46,8 @@ private: // メンバ変数
 	Sprite* spriteTitle_ = nullptr;
 	bool TitleFr = false;
 	int GameTime_;
+	bool isGameOver_ = false;
+	bool isGameClear_ = false;
 
 	enum class Scene { Title, MainGame, Clear, GameOver };
 
