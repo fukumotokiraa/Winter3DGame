@@ -47,6 +47,14 @@ void GameScene::Initialize() {
 	uint32_t TitleTexture = TextureManager::Load("./resources/Scene/Title.png");
 	spriteTitle_ = Sprite::Create(TitleTexture, {0, 0}, {255, 255, 255, 255}, {0, 0});
 
+	for (Enemy* enemy : enemies_) {
+		delete enemy;
+	}
+	enemies_.clear();
+
+	GameTime_ = 2000;
+	enemyAlive = 8;
+	playerLife = 3;
 	LoadEnemyPopData();
 	// GenerateEnemy({0,10,100});
 
@@ -66,7 +74,18 @@ void GameScene::Update() {
 	DWORD dwResult = XInputGetState(0, &joyState);
 	if (dwResult == ERROR_SUCCESS) {
 		// コントローラーが接続されている場合
+		// ゲームクリアまたはゲームオーバー中の処理
+		if (isGameOver_ || isGameClear_) {
+			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+				// Aボタンでタイトル画面へ戻る
+				TitleFr = false;
+				isGameOver_ = false;
+				isGameClear_ = false;
 
+				Initialize();
+				return;
+			}
+		}
 		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 			// Aボタンが押された場合
 			TitleFr = true;
@@ -76,6 +95,7 @@ void GameScene::Update() {
 		TitleFr = false;
 	}
 	if (TitleFr) {
+		GameTime_--;
 		player_->Update();
 		debugCamera_->Update();
 		for (Enemy* enemy : enemies_) {
@@ -102,6 +122,12 @@ void GameScene::Update() {
 
 		UpdateEnemyPopCommands();
 
+		    // ゲームクリアまたはゲームオーバーの判定
+		if (enemyAlive <= 0) {
+			isGameClear_ = true;
+		} else if (playerLife <= 0 || GameTime_ <= 0) {
+			isGameOver_ = true;
+		}
 #ifdef _DEBUG
 		if (input_->TriggerKey(DIK_1)) {
 			if (isDebugCameraActive_) {
@@ -184,19 +210,14 @@ void GameScene::Draw() {
 	//player_->DrawUI();
 
 
-	// クリアまたはゲームオーバーの条件に応じた描画
-	if (enemyAlive <= 1) {
-		// クリアの画像を描画
-		spriteClear_->Draw();
-	} else if (playerLife <= 0) {
-		// ゲームオーバーの画像を描画
-		spriteGameover_->Draw();
+    if (!TitleFr) {
+		spriteTitle_->Draw(); // タイトル画面を描画
+	} else if (isGameOver_) {
+		spriteGameover_->Draw(); // ゲームオーバー画面を描画
+	} else if (isGameClear_) {
+		spriteClear_->Draw(); // ゲームクリア画面を描画
 	} else {
-		// ここに前景スプライトの描画処理を追加できる
-		player_->DrawUI();
-	}
-	if (!TitleFr) {
-		spriteTitle_->Draw();
+		player_->DrawUI(); // ゲームプレイ中のUIを描画
 	}
 
 	// スプライト描画後処理
@@ -290,6 +311,9 @@ void GameScene::GenerateEnemy(const Vector3 position) {
 }
 
 void GameScene::LoadEnemyPopData() {
+	enemyPopCommands.clear();
+	enemyPopCommands.str("");
+
 	// ファイルを開く
 	std::ifstream file;
 	file.open("./Resources/enemyPop.csv");
