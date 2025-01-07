@@ -47,6 +47,8 @@ void GameScene::Initialize() {
 	uint32_t TitleTexture = TextureManager::Load("./resources/Scene/Title.png");
 	spriteTitle_ = Sprite::Create(TitleTexture, {0, 0}, {255, 255, 255, 255}, {0, 0});
 
+	bgm = Audio::GetInstance()->LoadWave("./resources/bgm.mp3");
+
 	for (Enemy* enemy : enemies_) {
 		delete enemy;
 	}
@@ -76,6 +78,7 @@ void GameScene::Update() {
 		// コントローラーが接続されている場合
 		// ゲームクリアまたはゲームオーバー中の処理
 		if (isGameOver_ || isGameClear_) {
+
 			if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 				// Aボタンでタイトル画面へ戻る
 				TitleFr = false;
@@ -85,6 +88,9 @@ void GameScene::Update() {
 				Initialize();
 				return;
 			}
+		}
+		if (playing == -1) {
+			playing = (uint32_t)Audio::GetInstance()->PlayWave(bgm, true, 0.2f);
 		}
 		if (joyState.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
 			// Aボタンが押された場合
@@ -124,8 +130,12 @@ void GameScene::Update() {
 
 		    // ゲームクリアまたはゲームオーバーの判定
 		if (enemyAlive <= 0) {
+			Audio::GetInstance()->StopWave(playing);
+			playing = -1;
 			isGameClear_ = true;
 		} else if (playerLife <= 0 || GameTime_ <= 0) {
+			Audio::GetInstance()->StopWave(playing);
+			playing = -1;
 			isGameOver_ = true;
 		}
 #ifdef _DEBUG

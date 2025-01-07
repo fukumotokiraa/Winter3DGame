@@ -48,6 +48,8 @@ private: // メンバ変数
 	int GameTime_;
 	bool isGameOver_ = false;
 	bool isGameClear_ = false;
+	uint32_t bgm = 0;
+	int playing = -1;
 
 	enum class Scene { Title, MainGame, Clear, GameOver };
 
